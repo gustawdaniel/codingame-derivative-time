@@ -1,4 +1,29 @@
-import {run} from "../lib";
+import {Coordinate, Formula, run} from "../lib";
+
+describe('coordinate', () => {
+    it('parsing', () => {
+        const point = new Coordinate('x 2 y 6');
+        expect(point.variables).toEqual(['x', 'y']);
+        expect(point.get('x')).toEqual(2);
+        expect(point.get('y')).toEqual(6);
+        expect(point.get('undefined')).toEqual(0);
+    })
+})
+describe('formula', () => {
+    const f = new Formula('(5*(x*y))', ['x','y']);
+
+    it('parse', () => {
+        expect(f.f).toEqual(['*', 5, ['*', 'x', 'y']]);
+        expect(f.v).toEqual(['x', 'y']);
+    });
+
+    it('evaluate', () => {
+        expect(f.evaluate(new Coordinate('x 1 y 2'))).toStrictEqual(10);
+    });
+})
+describe('diff operation', () => {
+
+})
 
 describe('e2e', () => {
     it('easy multiply', () => {
@@ -25,7 +50,7 @@ describe('e2e', () => {
     it("longer multiply", () => {
         expect(run('(((x^2)*(2*(z^5)))*((x+y)+z))\nz\nx 1 y 1 z 1')).toEqual('32')
     })
-    it( "3rd derivative", () => {
+    it("3rd derivative", () => {
         expect(run('(((y^6)*(z^5))*(((3*(x^4))+y)+z))\ny y z\nx 1 y 1 z 2')).toEqual('16320')
     })
     it("some Greek ;)", () => {
