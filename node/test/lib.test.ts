@@ -9,6 +9,7 @@ describe('coordinate', () => {
         expect(point.get('undefined')).toEqual(0);
     })
 })
+
 describe('formula', () => {
     const f = new Formula('(5*(x*y))', ['x', 'y']);
 
