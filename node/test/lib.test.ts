@@ -1,4 +1,4 @@
-import {Coordinate, Formula, run} from "../lib";
+import {Coordinate, DiffOperator, Formula, run} from "../lib";
 
 describe('coordinate', () => {
     it('parsing', () => {
@@ -10,19 +10,91 @@ describe('coordinate', () => {
     })
 })
 describe('formula', () => {
-    const f = new Formula('(5*(x*y))', ['x','y']);
+    const f = new Formula('(5*(x*y))', ['x', 'y']);
 
     it('parse', () => {
         expect(f.f).toEqual(['*', 5, ['*', 'x', 'y']]);
         expect(f.v).toEqual(['x', 'y']);
     });
 
+    it('parse with many brackets', () => {
+        const f = new Formula('((x^3)+(x^2))', ['x']);
+        expect(f.f).toEqual(['+', ['^', 'x', 3], ['^', 'x', 2]])
+    })
+
     it('evaluate', () => {
         expect(f.evaluate(new Coordinate('x 1 y 2'))).toStrictEqual(10);
     });
 })
 describe('diff operation', () => {
+    it('simplify', () => {
+        expect(DiffOperator.simplify(["+", ["*", 1, 0], ["*", 0, 1]])).toEqual(0);
+        expect(DiffOperator.simplify(['^', 'x', 1])).toEqual('x');
+        expect(DiffOperator.simplify(['*', 2, ['^', 'x', 1]])).toEqual(['*', 2, 'x']);
+        expect(DiffOperator.simplify(["*", 5, ["+", ["*", "x", 0], ["*", 1, "y"]]])).toEqual(['*', 5, 'y'])
+        expect(DiffOperator.simplify(["+", ["*", 5, ["+", ["*", "x", 0], ["*", 1, "y"]]], ["*", 0, ["*", "x", "y"]]])).toEqual(['*', 5, 'y'])
+    });
+    it("a'=0", () => {
+        const f = new Formula('(1*1)', ['x']);
+        const d = new DiffOperator('x');
+        expect(d.actOn(f).f).toEqual(0);
+    });
+    it("(a*x)'=a", () => {
+        const f = new Formula('(4*x)', ['x']);
+        const d = new DiffOperator('x');
+        expect(d.actOn(f).f).toEqual(4);
+    });
+    it("(x^a)'=a*x^(a-1) (when a is not 0)", () => {
+        const cases = [
+            {in: '(x^5)', out: ['*', 5, ['^', 'x', 4]]},
+            {in: '(x^3)', out: ['*', 3, ['^', 'x', 2]]},
+            {in: '(x^2)', out: ['*', 2, 'x']},
+        ];
+        for (const c of cases) {
+            const f = new Formula(c.in, ['x']);
+            const d = new DiffOperator('x');
+            expect(d.actOn(f).f).toEqual(c.out);
+        }
+    });
+    it('derivative', () => {
+        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 2, 'x'], 'x'))).toEqual(2);
+        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 5, ['*', 'x', 'y']], 'x'))).toEqual(['*', 5, 'y'])
+    })
+    it("(u+v)'=u'+v for (x+(x^2))'", () => {
+        const f = new Formula('(x+(x^2))', ['x']);
+        const d = new DiffOperator('x');
+        expect(d.actOn(f).f).toEqual(['+', 1, ['*', 2, 'x']]);
+    });
 
+    it("(u+v)'=u'+v'", () => {
+        const f = new Formula('((x^3)+(x^2))', ['x']);
+        const d = new DiffOperator('x');
+        console.log("f", f);
+        expect(d.actOn(f).f).toEqual(['+', ['*', 3, ['^', 'x', 2]], ['*', 2, 'x']]);
+    });
+    it("(u*v)'=u'*v+v'*u", () => {
+        const f = new Formula('(x*x)', ['x']);
+        const d = new DiffOperator('x');
+        console.log("f", f);
+        expect(d.actOn(f).f).toEqual(['+', 'x', 'x']);
+    });
+
+    it('d(8*(y^x))/dy', () => {
+        const f = new Formula('(8*(y^x))', ['x', 'y']);
+        expect(f.f).toEqual(['*', 8, ['^', 'y', 'x']]);
+        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 8, ['^', 'y', 'x']], 'y'))).toEqual(['*', 8, ['*', 'x', ['^', 'y', ['+', 'x', -1]]]]);
+    })
+
+    it('(18*(x^-1))',() => {
+        const f = new Formula('(18*(x^-1))', ['x']);
+        expect(f.f).toEqual(['*', 18, ['^', 'x', -1]]);
+        expect(DiffOperator.simplify(DiffOperator.derivative(f.f, 'x'))).toEqual( ['*', 18, ['*', -1, ['^', 'x', -2]]]);
+    });
+
+    it('d(((x^2)+(2*(z^5)))+(((18*(x^-1))+y)+z))/dx', () => {
+        const f = new Formula('(((x^2)+(2*(z^5)))+(((18*(x^-1))+y)+z))', ['x', 'y', 'z']);
+        expect(DiffOperator.simplify(DiffOperator.derivative(f.f, 'x'))).toEqual(['+', ['*', 2, 'x'], ['*', 18, ['*', -1, ['^', 'x', -2]]]]);
+    })
 })
 
 describe('e2e', () => {
