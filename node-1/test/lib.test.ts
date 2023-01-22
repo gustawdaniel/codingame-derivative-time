@@ -35,6 +35,10 @@ describe('diff operation', () => {
         expect(DiffOperator.simplify(["*", 5, ["+", ["*", "x", 0], ["*", 1, "y"]]])).toEqual(['*', 5, 'y'])
         expect(DiffOperator.simplify(["+", ["*", 5, ["+", ["*", "x", 0], ["*", 1, "y"]]], ["*", 0, ["*", "x", "y"]]])).toEqual(['*', 5, 'y'])
     });
+    it('derivative', () => {
+        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 2, 'x'], 'x'))).toEqual(2);
+        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 5, ['*', 'x', 'y']], 'x'))).toEqual(['*', 5, 'y'])
+    })
     it("a'=0", () => {
         const f = new Formula('(1*1)', ['x']);
         const d = new DiffOperator('x');
@@ -57,10 +61,6 @@ describe('diff operation', () => {
             expect(d.actOn(f).f).toEqual(c.out);
         }
     });
-    it('derivative', () => {
-        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 2, 'x'], 'x'))).toEqual(2);
-        expect(DiffOperator.simplify(DiffOperator.derivative(['*', 5, ['*', 'x', 'y']], 'x'))).toEqual(['*', 5, 'y'])
-    })
     it("(u+v)'=u'+v for (x+(x^2))'", () => {
         const f = new Formula('(x+(x^2))', ['x']);
         const d = new DiffOperator('x');

@@ -66,8 +66,6 @@ export class Formula {
     }
 
     constructor(input: string, variables: string[]) {
-        // ( 5 * ( x * y ) )
-        // ['*', 5, ['*', 'x', 'y']]
         this.v = variables;
         this.f = this.decomposeInput(input);
     }
@@ -175,7 +173,6 @@ export class DiffOperator {
         } else {
             return 0;
         }
-        return s;
     }
 
     actOn(f: Formula): Formula {

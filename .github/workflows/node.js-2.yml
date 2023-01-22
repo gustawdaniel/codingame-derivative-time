@@ -6,7 +6,7 @@ on:
     paths: [ "node/**" ]
 
 env:
-  working-directory: ./node
+  working-directory: ./node-2
 
 jobs:
   build:
