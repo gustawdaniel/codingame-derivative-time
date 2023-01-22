@@ -144,4 +144,39 @@ describe('e2e', () => {
     it("cannot find", () => {
         expect(run('(5*(x*(y^2)))\nz\nx 2 y 6')).toEqual('0')
     })
+    it('crazy ln chain', () => {
+        expect(run('ln(ln(ln(ln x)))\n' +
+            'x\n' +
+            'x 15.16')).toEqual('174.23')
+    })
+    it('interesting powers', () => {
+        expect(run('e^(x^2)+4^(x^e)+(5*x)^2+(sin x)^(sin x)\n' +
+            'x\n' +
+            'x 1.00')).toEqual('70.90')
+    })
+    it('2nd deriv', () => {
+        expect(run('(cos pi+2*ln e)*0.50*x*y^2+z\n' +
+            'y x\n' +
+            'x 2.00 y 5.00 z 0.00')).toEqual('5.00')
+    })
+    it('fraction', () => {
+        expect(run('(sin x^-2+pi^-1)^-1\n' +
+            'x\n' +
+            'x 3.00')).toEqual('-0.28')
+    })
+    it('3rd', () => {
+        expect(run('e^x\n' +
+            'x x x\n' +
+            'x 1.00')).toEqual('2.72')
+    })
+    it('parse', () => {
+        expect(run('y+2*z^x^sin y*z+y*cos pi^2*ln x\n' +
+            'x\n' +
+            'x 2.72 y 2.00 z 3.00')).toEqual('84.58')
+    })
+    it('diversified vars', () => {
+        expect(run('Var_1+3*Var_1^ln Gamma^cos(2*pi)*y3+y3*sin pi^4*e^Gamma\n' +
+            'Gamma\n' +
+            'Gamma 1.00 y3 2.00 Var_1 3.00')).toEqual('6.59')
+    })
 })
