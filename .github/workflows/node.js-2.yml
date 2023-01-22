@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Node.js Part 2
 
 on:
   push:
