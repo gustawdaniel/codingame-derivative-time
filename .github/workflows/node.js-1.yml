@@ -3,7 +3,7 @@ name: Node.js Part 1
 on:
   push:
     branches: [ "main" ]
-    paths: [ "node/**" ]
+    paths: [ "node-1/**" ]
 
 env:
   working-directory: ./node-1
